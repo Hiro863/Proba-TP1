@@ -1,0 +1,346 @@
+---
+title: "TP1"
+output: html_notebook
+author: "Hiroyoshi Yamasaki"
+---
+
+```{r}
+library(ggplot2)
+library(poisson)
+library(STAR)
+library(rjags)
+library(R2jags)
+```
+
+# Part I: Generating random variables
+- Generate a vector x of length 200 of equispaced values from 0 to 3 using the function ‘seq’. Using the function ‘dexp’, create a plot of the probability density function of an exponential distribution with parameter 5.
+
+```{r}
+x <- seq(0, 3, length=200)
+y <- dexp(x, rate=5)
+df <- data.frame(x=x, y=y)
+p <- ggplot(data=df, aes(x=x, y=y)) + geom_line(col="blue") 
+p + ggtitle("pdf of Exponential distribution") + xlab("value x") + ylab("density")
+```
+
+Draw a sample of 1000 values from an exponential distribution with parameter 5 using the function ‘rexp’. Draw a histogram using the function ‘hist’.
+
+```{r}
+samples <- rexp(n=1000, rate=5)
+df <- data.frame(x=samples)
+p <- ggplot(data=df, aes(x=x)) + geom_histogram() + theme(plot.title = element_text(hjust = 0.5))
+p + ggtitle("Histogram of exponential distribution") + xlab("value x") + ylab("Frequency")
+```
+
+Create a vector of integers from 0 to 10. Use the function ‘barplot’ to represent the probability mass function of a Poisson distribution with parameter 3. Generate 1000 random draws from this distribution. Use the functions ‘table’ and ‘barplot’ to give the probability mass function of these generated values.
+
+```{r}
+x <- 0:10
+y <- dpois(x, lambda=3)
+
+df = data.frame(x=x, y=y)
+p <- ggplot(data = df, aes(x=x, y=y)) + geom_bar(stat="identity") + theme(plot.title = element_text(hjust = 0.5))
+p + ggtitle("pdf of Poisson distribution") + xlab("value x") + ylab("density")
+```
+Run the CODE chunk 1 below. Explain what it does and what principles it is illustrating.
+
+```{r}
+# Gamma distribution
+par(cex.lab=2)       # magnification on x and y labels
+par(cex.axis=1.75)   # magnification on axis annotations
+par(las=1)           # style of axis label, horizontal
+par(mfrow=c(1,2))    # 1-row, 2-cols
+par(mar = c(4, 4, 1, 1))  # margin size
+
+# Sample
+small_sample = 10
+large_sample = 200
+smallSample = rgamma(small_sample, 2)
+largeSample = rgamma(large_sample, 2)
+
+# Small sample #################################################################
+
+# Format data
+xvals = sort(smallSample) # sort
+yvals = (0:small_sample)/small_sample         # vector of 10 with increment .1
+
+# Create a stepfunction
+fhat = stepfun(xvals, yvals, right = TRUE)
+
+# Plot the step function
+plot(fhat, xlab = "", ylab = "", main = "", pch = 16, cex = 1)
+
+# Plot the cdf
+xseq = seq(-1, 12, length = 300) # input values x
+lines(xseq, pgamma(xseq, 2), lty = 5, lwd = 2, col = 4)
+
+# Large sample  ################################################################
+
+# Format data
+xvals = sort(largeSample)
+yvals = (0:large_sample)/large_sample
+
+# Create a stepfunction
+fhat = stepfun(xvals, yvals, right = TRUE)
+
+# Plot the step function
+plot(fhat, xlab = "", ylab = "", main = "", pch = 16, cex = 0.7)
+
+# Plot the cdf
+xseq = seq(-1, 12, length = 300)
+lines(xseq, pgamma(xseq, 2), lty = 5, lwd = 2, col = 4)
+```
+
+Adapt the CODE chunk 1 by replacing the Gamma distribution with a Gaussian distribution with
+mean 0 and standard deviation 1 and the consider sample sizes of 30 and 150
+
+```{r}
+# Gaussian distribution
+help(rnorm)
+par(cex.lab=2)       # magnification on x and y labels
+par(cex.axis=1.75)   # magnification on axis annotations
+par(las=1)           # style of axis label, horizontal
+par(mfrow=c(1,2))    # 1-row, 2-cols
+par(mar = c(4, 4, 1, 1))  # margin size
+
+# Sample
+small_sample = 30
+large_sample = 150
+smallSample = rnorm(small_sample)
+largeSample = rnorm(large_sample)
+
+# Small sample #################################################################
+
+# Format data
+xvals = sort(smallSample) # sort
+yvals = (0:small_sample)/small_sample         # vector of 10 with increment .1
+
+# Create a stepfunction
+fhat = stepfun(xvals, yvals, right = TRUE)
+
+# Plot the step function
+plot(fhat, xlab = "", ylab = "", main = "", pch = 16, cex = 1)
+
+# Plot the density
+xseq = seq(-10, 10, length = 300) # input values x
+lines(xseq, pnorm(xseq), lty = 5, lwd = 2, col = 4)
+
+# Large sample  ################################################################
+
+# Format data
+xvals = sort(largeSample)
+yvals = (0:large_sample)/large_sample
+
+# Create a stepfunction
+fhat = stepfun(xvals, yvals, right = TRUE)
+
+# Plot the step function
+plot(fhat, xlab = "", ylab = "", main = "", pch = 16, cex = 0.7)
+
+# Plot the density
+xseq = seq(-10, 10, length = 300)
+lines(xseq, pnorm(xseq), lty = 5, lwd = 2, col = 4)
+```
+
+# Part II: simulating a Poisson process
+
+## Generating a Poisson Process
+
+```{r}
+generate_poisson <- function(n, lambda)
+{
+  out <- numeric(n+1) # starts with 0
+  out[1] <- 0         # initialize
+  
+  for (i in 2:(n+1))
+  {
+    sample <- runif(1)
+    xi <- -log(1 - sample) / lambda  # F^-1(u)
+    out[i:(n+1)] <- out[i:(n+1)] + rep(xi, n-i+2)
+  }
+  return (out)
+}
+
+```
+
+```{r}
+
+n = 100
+lambda = 5
+
+x1 <- generate_poisson(n, lambda)
+x2 <- hpp.sim(lambda, n)
+
+df <- data.frame(c(x1, x2), c(1:(n+1), 1:(n+1)), c(rep("ours", n+1), rep("hpp", n+1)))
+names(df) <- c("t", "count", "type")
+
+p <- ggplot() + geom_step(data=df, aes(x=t, y=count, color=type)) + theme(plot.title = element_text(hjust = 0.5))
+p + ggtitle("Comparison of 2 Poisson Process functions") + xlab("Time t") + ylab("Number of events")
+```
+
+
+```{r}
+
+n = 100
+lambda = 5
+num_trials = 10
+
+x <- numeric(0)
+c <- numeric(0)
+t <- numeric(0)
+
+for (i in 1:num_trials)
+{
+  x <- c(x, generate_poisson(n, lambda))
+  x <- c(x, hpp.sim(lambda, n))
+  
+  c <- c(c, 1:(n+1))
+  c <- c(c, 1:(n+1))
+  
+  t <- c(t, rep("ours", n+1))
+  t <- c(t, rep("hpp", n+1))
+}
+
+
+df <- data.frame(x, c, t)
+names(df) <- c("t", "count", "type")
+
+p <- ggplot() + geom_point(data=df, aes(x=t, y=count, color=type, alpha=.1)) + theme(plot.title = element_text(hjust = 0.5))
+p + ggtitle("Comparison of 2 Poisson Process functions") + xlab("Time t") + ylab("Number of events")
+```
+
+
+# Part III: real data analysis
+
+## Building Peri-Stimulus Time Histograms
+
+Create a vector ‘N1_S1’ of spike event times of the first trial of the neuron 1.
+
+```{r}
+N1_S1 <- CAL1V$`neuron 1`$`stim. 1`
+attributes(N1_S1) <- NULL
+N1_S1
+```
+
+Check the number of events observed at each trial (i.e., compute the length of sub-list)
+
+```{r}
+lapply(CAL1V$`neuron 1`, FUN=length)
+```
+
+Compute the range of values taken by the time of events
+```{r}
+lapply(CAL1V$`neuron 1`, FUN=range)
+```
+
+Create a Peri-Stimulus Time Histogram. The idea is to aggregate (average) data over trials into bins of predetermined width (for example 0.5s), normalize the unit spike to the second, Hint: use the function ‘hist’.
+```{r}
+# set the disjoint interval from the hist function
+breaks = seq(0, 11, by=0.5) # number of spikes per half seconds!
+
+# create a matrix of counts within each half second intervals
+neuron1_mat_counts = matrix(nrow = 20, ncol = length(breaks)-1) 
+for (i in 1:length(Neuron_1))
+{
+  neuron1_mat_counts[i, ] =  hist(Neuron_1[[i]],breaks = breaks, plot = FALSE)$counts
+}
+
+plot(seq(0.1, 10.9, by=0.5), 2*apply(neuron1_mat_counts, 2, mean), type='l', main = "")
+```
+
+## Beyond (homogeneous) Poisson Processes
+
+Plot the cumulative count of spike events (for neuron 1 trial 1) as a function of the event times and overplot with the cumulative plot of your Poisson process with parameter λ. Choose λ as the average number of events per seconds over the 20 replicates.
+
+
+```{r}
+
+lambda <- mean(unlist(CAL1V$`neuron 1`))
+n <- length(N1_S1)
+x <- generate_poisson(n-1, lambda=lambda)
+
+df <- data.frame(c(N1_S1, x), c(1:n,1:n), c(rep("neuron", n), rep("poisson", n)))
+names(df) <- c("t", "count", "type")
+ggplot(data=df, aes(x=t, y=count, color=type)) + geom_step()
+```
+
+## Bayesian modeling
+Using R, create 2 vectors of counts giving the number of spikes for each trial in time intervals $I_1 = (3, 4]$ and $I_2 = (5, 6]$. Denote as $y_{i,j$} the number of spikes for the $i$-th trial and $j$-th time interval.
+```{r}
+N1 <- CAL1V$`neuron 1`
+
+count <- function(spikes, min, max)
+{
+  return (length(spikes[spikes > min & spikes <= max]))
+}
+
+y1 <- lapply(N1, 3, 4, FUN=count)
+attributes(y1) <- NULL
+
+y2 <- lapply(N1, 5, 6, FUN=count)
+attributes(y2) <- NULL
+```
+
+You decide to use a Bayesian approach and propose the following model
+$$
+y_{i,j}|  \sim  Poi(\theta_j), j \in \{1, 2\} \\
+\theta_j \sim Gamma(0.1, 0.1)
+$$
+
+Discuss this modeling choice.
+TODO
+
+
+Using the Rjags code chunk below, compute the posterior distribution of the differences of the Poisson parameters.
+
+```{r}
+help(dpois)
+```
+
+```{r}
+# create the vector of counts
+# Prepare Jags function input
+model_code = '
+model
+{
+  # likelihood
+  for (i in 1:length(y1))
+  {
+  
+    y1[i] ~ dpois(theta1)
+    y2[i] ~ dpois(theta2)
+      
+  }
+
+  # Prior
+  theta1 ~ dgamma(1/0.1, 0.1) # s = 1/beta
+  theta2 ~ dgamma(1/0.1, 0.1) # s = 1/beta
+} '
+
+model_data = list(y1 = y1, y2 = y2,  N = 20)
+model_parameters =  c("theta1","theta2","delta")
+
+# run Jags
+model_run = jags(data = model_data,
+                 parameters.to.save = model_parameters,
+                 model.file=textConnection(model_code),
+                 n.chains=4,
+                 n.iter=10000,
+                 n.burnin=200,
+                 n.thin=2)
+
+# print the results
+print(model_run)
+
+# plot the posterior distribution of the parameter of interest
+hist(model_run$BUGSoutput$sims.array[,1,"theta1"], main="", probability = TRUE, xlab="delt8a")
+hist(model_run$BUGSoutput$sims.array[,1,"theta2"], main="", probability = TRUE, xlab="delt8a")
+```
+Give the histogram of the differences
+```{r}
+diff <-model_run$BUGSoutput$sims.array[,1,"theta2"] - model_run$BUGSoutput$sims.array[,1,"theta1"]
+hist(diff, main="", probability = TRUE, xlab="delt8a")
+```
+From the Jags outputs what are your conclusions?
+# TODO
+
