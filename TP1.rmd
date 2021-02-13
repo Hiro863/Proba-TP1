@@ -294,10 +294,6 @@ TODO
 Using the Rjags code chunk below, compute the posterior distribution of the differences of the Poisson parameters.
 
 ```{r}
-help(dpois)
-```
-
-```{r}
 # create the vector of counts
 # Prepare Jags function input
 model_code = '
