@@ -96,7 +96,6 @@ mean 0 and standard deviation 1 and the consider sample sizes of 30 and 150
 
 ```{r}
 # Gaussian distribution
-help(rnorm)
 par(cex.lab=2)       # magnification on x and y labels
 par(cex.axis=1.75)   # magnification on axis annotations
 par(las=1)           # style of axis label, horizontal
