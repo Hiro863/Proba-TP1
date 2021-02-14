@@ -1,7 +1,7 @@
 ---
 title: "TP1"
 output: html_notebook
-author: "Hiroyoshi Yamasaki"
+author: "Anaïs Artaud, Silvana Licaj, Hiroyoshi Yamasaki"
 ---
 
 ```{r}
