@@ -308,8 +308,8 @@ model
   }
 
   # Prior
-  theta1 ~ dgamma(1/0.1, 0.1) # s = 1/beta
-  theta2 ~ dgamma(1/0.1, 0.1) # s = 1/beta
+  theta1 ~ dgamma(0.1, 0.1)
+  theta2 ~ dgamma(0.1, 0.1)
 } '
 
 model_data = list(y1 = y1, y2 = y2,  N = 20)
@@ -328,13 +328,13 @@ model_run = jags(data = model_data,
 print(model_run)
 
 # plot the posterior distribution of the parameter of interest
-hist(model_run$BUGSoutput$sims.array[,1,"theta1"], main="", probability = TRUE, xlab="delt8a")
-hist(model_run$BUGSoutput$sims.array[,1,"theta2"], main="", probability = TRUE, xlab="delt8a")
+hist(model_run$BUGSoutput$sims.array[,1,"theta1"], main="", probability = TRUE, xlab="delta")
+hist(model_run$BUGSoutput$sims.array[,1,"theta2"], main="", probability = TRUE, xlab="delta")
 ```
 Give the histogram of the differences
 ```{r}
 diff <-model_run$BUGSoutput$sims.array[,1,"theta2"] - model_run$BUGSoutput$sims.array[,1,"theta1"]
-hist(diff, main="", probability = TRUE, xlab="delt8a")
+hist(diff, main="", probability = TRUE, xlab="delta")
 ```
 From the Jags outputs what are your conclusions?
 # TODO
