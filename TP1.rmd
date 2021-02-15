@@ -306,15 +306,13 @@ model
     y2[i] ~ dpois(theta2)
       
   }
-
   # Prior
   theta1 ~ dgamma(0.1, 0.1)
   theta2 ~ dgamma(0.1, 0.1)
+  delta <- theta1 - theta2
 } '
-
 model_data = list(y1 = y1, y2 = y2,  N = 20)
 model_parameters =  c("theta1","theta2","delta")
-
 # run Jags
 model_run = jags(data = model_data,
                  parameters.to.save = model_parameters,
@@ -323,7 +321,6 @@ model_run = jags(data = model_data,
                  n.iter=10000,
                  n.burnin=200,
                  n.thin=2)
-
 # print the results
 print(model_run)
 
@@ -331,11 +328,13 @@ print(model_run)
 hist(model_run$BUGSoutput$sims.array[,1,"theta1"], main="", probability = TRUE, xlab="delta")
 hist(model_run$BUGSoutput$sims.array[,1,"theta2"], main="", probability = TRUE, xlab="delta")
 ```
+
 Give the histogram of the differences
+
 ```{r}
-diff <-model_run$BUGSoutput$sims.array[,1,"theta2"] - model_run$BUGSoutput$sims.array[,1,"theta1"]
-hist(diff, main="", probability = TRUE, xlab="delta")
+hist(model_run$BUGSoutput$sims.array[,1,"delta"], main="", probability = TRUE, xlab="delta")
 ```
+
 From the Jags outputs what are your conclusions?
 # TODO
 
