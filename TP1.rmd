@@ -216,6 +216,7 @@ p + ggtitle("Comparison of 2 Poisson Process functions") + xlab("Time t") + ylab
 Create a vector ‘N1_S1’ of spike event times of the first trial of the neuron 1.
 
 ```{r}
+data("CAL1V")
 N1_S1 <- CAL1V$`neuron 1`$`stim. 1`
 attributes(N1_S1) <- NULL
 N1_S1
