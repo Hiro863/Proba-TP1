@@ -251,7 +251,7 @@ plot(seq(0.1, 10.9, by=0.5), 2*apply(neuron1_mat_counts, 2, mean), type='l', mai
 
 ## Beyond (homogeneous) Poisson Processes
 
-Plot the cumulative count of spike events (for neuron 1 trial 1) as a function of the event times and overplot with the cumulative plot of your Poisson process with parameter λ. Choose λ as the average number of events per seconds over the 20 replicates.
+Plot the cumulative count of spike events (for neuron 1 trial 1) as a function of the event times and overplot with the cumulative plot of your Poisson process with parameter $\lambda$. Choose $\lambda$ as the average number of events per seconds over the 20 replicates.
 
 
 ```{r}
