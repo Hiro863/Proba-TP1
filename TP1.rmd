@@ -336,5 +336,5 @@ hist(model_run$BUGSoutput$sims.array[,1,"delta"], main="", probability = TRUE, x
 ```
 
 From the Jags outputs what are your conclusions?
-# TODO
+This result indicates that the assumption about the homogeneity was wrong and it explains why it diverges from the Poisson process.
 
