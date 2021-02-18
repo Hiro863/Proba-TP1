@@ -235,6 +235,7 @@ lapply(CAL1V$`neuron 1`, FUN=range)
 
 Create a Peri-Stimulus Time Histogram. The idea is to aggregate (average) data over trials into bins of predetermined width (for example 0.5s), normalize the unit spike to the second, Hint: use the function ‘hist’.
 ```{r}
+Neuron_1 <- CAL1V$`neuron 1`
 # set the disjoint interval from the hist function
 breaks = seq(0, 11, by=0.5) # number of spikes per half seconds!
 
